@@ -53,16 +53,16 @@ void __not_in_flash_func(process_kbd_report)(hid_keyboard_report_t const *report
     printf("\r\n");*/
 
     //-------------------------------------------------------------------------
-    if (isInReport(report, 0x28)) { nespad_state |= DPAD_START; }
-    if (isInReport(report, 0x2A)) { nespad_state |= DPAD_SELECT; }
+    if (isInReport(report, HID_KEY_ENTER)) { nespad_state |= DPAD_START; }
+    if (isInReport(report, HID_KEY_BACKSPACE)) { nespad_state |= DPAD_SELECT; }
 
-    if (isInReport(report, 0x1D)) { nespad_state |= DPAD_A; }
-    if (isInReport(report, 0x1B)) { nespad_state |= DPAD_B; }
+    if (isInReport(report, HID_KEY_Z)) { nespad_state |= DPAD_A; }
+    if (isInReport(report, HID_KEY_X)) { nespad_state |= DPAD_B; }
 
-    if (isInReport(report, 0x52)) { nespad_state |= DPAD_UP; }
-    if (isInReport(report, 0x51)) { nespad_state |= DPAD_DOWN; }
-    if (isInReport(report, 0x50)) { nespad_state |= DPAD_LEFT; }
-    if (isInReport(report, 0x4F)) { nespad_state |= DPAD_RIGHT; }
+    if (isInReport(report, HID_KEY_ARROW_UP)) { nespad_state |= DPAD_UP; }
+    if (isInReport(report, HID_KEY_ARROW_DOWN)) { nespad_state |= DPAD_DOWN; }
+    if (isInReport(report, HID_KEY_ARROW_LEFT)) { nespad_state |= DPAD_LEFT; }
+    if (isInReport(report, HID_KEY_ARROW_RIGHT)) { nespad_state |= DPAD_RIGHT; }
     //-------------------------------------------------------------------------
 }
 
