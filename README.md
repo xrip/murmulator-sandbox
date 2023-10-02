@@ -1,4 +1,4 @@
-# Building
+# MURMULATOR devboard Example / SDK
 To get it working you should have an Murmulator (development) board with VGA output. Schematics available here at https://github.com/AlexEkb4ever/MURMULATOR_classical_scheme
 
 Or connect your Raspberry Pi Pico to VGA using 8 resistors:

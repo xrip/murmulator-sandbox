@@ -41,7 +41,7 @@ typedef unsigned char Bool;
 #define __IO	volatile
 
 // request to use inline
-#define INLINE __attribute__((always_inline)) inline
+//#define INLINE __attribute__((always_inline)) inline
 
 // avoid to use inline
 #define NOINLINE __attribute__((noinline))
@@ -93,7 +93,7 @@ typedef unsigned char Bool;
 #define B30 (1UL<<30)
 #define B31 (1UL<<31)
 
-#define BIT(pos) (1UL<<(pos))
+//#define BIT(pos) (1UL<<(pos))
 
 #define	BIGINT	0x40000000 // big int value
 
@@ -103,7 +103,7 @@ typedef unsigned char Bool;
 #define PI2 (3.14159265358979324*2)
 
 #define VGA_RGB(r,g,b)   ( (((r>>5)&0x07)<<5) | (((g>>5)&0x07)<<2) | (((b>>6)&0x3)<<0) )
-
+#define VGA_RGB_222(r, g, b) ((r << 4) | (g << 2) | b)
 
 // system includes
 #include <string.h>

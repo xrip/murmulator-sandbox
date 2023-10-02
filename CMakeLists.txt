@@ -1,88 +1,98 @@
-cmake_minimum_required(VERSION 3.22)
-project(sandbox C CXX ASM)
+cmake_minimum_required(VERSION 3.13)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
+set(OUTPUT_DIR "${CMAKE_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${OUTPUT_DIR}")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${OUTPUT_DIR}")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${OUTPUT_DIR}")
+
 include(pico_sdk_import.cmake)
-include(pico_extras_import.cmake)
+
+project(SANDBOX C CXX ASM)
 
 pico_sdk_init()
 
-add_compile_options(-Wall)
-
-add_subdirectory(drivers/fatfs)
-add_subdirectory(drivers/sdcard)
-add_subdirectory(drivers/ps2kbd)
 add_subdirectory(drivers/vga)
+add_subdirectory(drivers/sdcard)
+add_subdirectory(drivers/fatfs)
+add_subdirectory(drivers/nespad)
+add_subdirectory(drivers/ps2kbd)
+
+file(GLOB_RECURSE SRC "src/*.cpp" "src/*.c" "src/*.h")
+
+message(STATUS "")
+message(STATUS "Add source files:")
+foreach(SRC_FILE IN LISTS SRC)
+    message(STATUS "${SRC_FILE}")
+endforeach()
+message(STATUS "")
+
+add_executable(${PROJECT_NAME} ${SRC})
+
+pico_set_program_name(${PROJECT_NAME} "MURMULATOR devboard Sandbox")
+pico_set_program_version(${PROJECT_NAME} "v0.1")
 
 
-include_directories(${CMAKE_CURRENT_LIST_DIR})
+pico_enable_stdio_uart(${PROJECT_NAME} 0)
+pico_enable_stdio_usb(${PROJECT_NAME} 1)
 
-add_executable(sandbox
-  main.cpp
+target_link_libraries(${PROJECT_NAME} PRIVATE
+		vga
+		ps2kbd
+		nespad
+		sdcard
+		fatfs
+
+		pico_runtime
+        pico_stdlib
+        pico_multicore
+        hardware_dma
+        hardware_pio
+        hardware_i2c
+        hardware_interp
+        hardware_timer
+        hardware_clocks
+        hardware_pwm
+        hardware_flash
 )
 
-target_compile_definitions(sandbox PRIVATE 
-# VGA
-VGA_GPIO_FIRST=6 
-VGA_GPIO_OUTNUM=6 
-VGA_GPIO_SYNC=12
-VGA_VSYNC=13
-# SDCARD
-SDCARD_PIN_SPI0_CS=5
-SDCARD_PIN_SPI0_SCK=2
-SDCARD_PIN_SPI0_MOSI=3
-SDCARD_PIN_SPI0_MISO=4
-# PS2KBD
-USE_PS2_KBD    
-PS2KBD_GPIO_FIRST=0
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+		# 16MB flash
+		PICO_FLASH_SIZE_BYTES=16777216
+
+        SPEAKER_ENABLED
+        # VGA
+        VGA_GPIO_FIRST=6
+        VGA_GPIO_OUTNUM=6
+        VGA_GPIO_SYNC=12
+        VGA_VSYNC=13
+
+        # SDCARD
+        SDCARD_PIN_SPI0_CS=5
+        SDCARD_PIN_SPI0_SCK=2
+        SDCARD_PIN_SPI0_MOSI=3
+        SDCARD_PIN_SPI0_MISO=4
+
+        # PS2KBD
+        USE_PS2_KBD
+        PS2KBD_GPIO_FIRST=0
+
+        # NES Gamepad
+        USE_NESPAD
+        NES_GPIO_CLK=14
+        NES_GPIO_DATA=16
+        NES_GPIO_LAT=15
+
+        #AUDIO
+        AUDIO_PWM_PIN=26
+
+        # Other
+        FF_USE_FIND
 )
 
-# Pull in our pico_stdlib which aggregates commonly used features
-if(PICO_ON_DEVICE)
-  target_link_libraries(sandbox PRIVATE
-  tinyusb_host
-  tinyusb_board
-
-vga
-sdcard
-fatfs
-ps2kbd
-
-        pico_stdlib pico_stdio pico_bootrom pico_multicore pico_stdio  pico_multicore
-        hardware_clocks hardware_pio hardware_vreg hardware_pio
-        hardware_sync hardware_pll hardware_spi hardware_irq hardware_dma
+pico_add_extra_outputs(${PROJECT_NAME})
 
 
-#    pico_multicore
-#    pico_stdlib
 
-#    hardware_timer
-#    hardware_vreg
-#    hardware_dma
-#    hardware_pio
-#    hardware_pwm
-
-)
-else()  
-# need SDL2
-  find_package(SDL2 REQUIRED)
-
-  target_include_directories(
-    sandbox
-    INTERFACE ${CMAKE_CURRENT_LIST_DIR}
-              # have both forms of these because windows doesn't have SDL2
-              # prefix
-              ${SDL2_INCLUDE_DIR}
-              ${SDL2_INCLUDE_DIR}/SDL2)
-
-  target_link_libraries(sandbox ${SDL2_LIBRARIES} pico_multicore pico_stdlib)
-endif()
-
-# enable for on pico debugging
-pico_enable_stdio_usb(sandbox 0)
-pico_enable_stdio_uart(sandbox 0)
-
-# create map/bin/hex/uf2 file etc.
-pico_add_extra_outputs(sandbox)

@@ -3,6 +3,7 @@ if (NOT TARGET fatfs)
 
     target_sources(fatfs INTERFACE
             ${CMAKE_CURRENT_LIST_DIR}/ff.c
+            ${CMAKE_CURRENT_LIST_DIR}/f_util.c
             ${CMAKE_CURRENT_LIST_DIR}/ffsystem.c
             ${CMAKE_CURRENT_LIST_DIR}/ffunicode.c
     )
