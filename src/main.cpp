@@ -37,6 +37,18 @@ typedef enum {
 } resolution_t;
 resolution_t resolution = RESOLUTION_TEXTMODE;
 
+struct input_bits_t {
+    bool a: true;
+    bool b: true;
+    bool select: true;
+    bool start: true;
+    bool right: true;
+    bool left: true;
+    bool up: true;
+    bool down: true;
+};
+static input_bits_t keyboard_bits = { false, false, false, false, false, false, false, false };
+
 static bool isInReport(hid_keyboard_report_t const *report, const unsigned char keycode) {
     for (unsigned char i: report->keycode) {
         if (i == keycode) {
@@ -52,18 +64,14 @@ void __not_in_flash_func(process_kbd_report)(hid_keyboard_report_t const *report
         printf("%2.2X", i);
     printf("\r\n");*/
 
-    //-------------------------------------------------------------------------
-    if (isInReport(report, HID_KEY_ENTER)) { nespad_state |= DPAD_START; }
-    if (isInReport(report, HID_KEY_BACKSPACE)) { nespad_state |= DPAD_SELECT; }
-
-    if (isInReport(report, HID_KEY_Z)) { nespad_state |= DPAD_A; }
-    if (isInReport(report, HID_KEY_X)) { nespad_state |= DPAD_B; }
-
-    if (isInReport(report, HID_KEY_ARROW_UP)) { nespad_state |= DPAD_UP; }
-    if (isInReport(report, HID_KEY_ARROW_DOWN)) { nespad_state |= DPAD_DOWN; }
-    if (isInReport(report, HID_KEY_ARROW_LEFT)) { nespad_state |= DPAD_LEFT; }
-    if (isInReport(report, HID_KEY_ARROW_RIGHT)) { nespad_state |= DPAD_RIGHT; }
-    //-------------------------------------------------------------------------
+    keyboard_bits.start = isInReport(report, HID_KEY_ENTER);
+    keyboard_bits.select = isInReport(report, HID_KEY_BACKSPACE);
+    keyboard_bits.a = isInReport(report, HID_KEY_Z);
+    keyboard_bits.b = isInReport(report, HID_KEY_X);
+    keyboard_bits.up = isInReport(report, HID_KEY_ARROW_UP);
+    keyboard_bits.down = isInReport(report, HID_KEY_ARROW_DOWN);
+    keyboard_bits.left = isInReport(report, HID_KEY_ARROW_LEFT);
+    keyboard_bits.right = isInReport(report, HID_KEY_ARROW_RIGHT);
 }
 
 Ps2Kbd_Mrmltr ps2kbd(
@@ -222,7 +230,7 @@ void rom_file_selector() {
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-        if ((nespad_state & DPAD_START) != 0 || (nespad_state & DPAD_A) != 0 || (nespad_state & DPAD_B) != 0) {
+        if ((nespad_state & DPAD_START) != 0 || (nespad_state & DPAD_A) != 0 || (nespad_state & DPAD_B) != 0 || keyboard_bits.start) {
             /* copy the rom from the SD card to flash and start the game */
             char pathname[255];
             sprintf(pathname, "SEGA\\%s", filenames[selected]);
@@ -230,7 +238,7 @@ void rom_file_selector() {
             break;
         }
 
-        if ((nespad_state & DPAD_DOWN) != 0) {
+        if ((nespad_state & DPAD_DOWN) != 0 || keyboard_bits.down) {
             /* select the next rom */
             draw_text(filenames[selected], 0, selected, 0xFF, 0x00);
             selected++;
@@ -240,7 +248,7 @@ void rom_file_selector() {
             printf("Rom %s\r\n", filenames[selected]);
             sleep_ms(150);
         }
-        if ((nespad_state & DPAD_UP) != 0) {
+        if ((nespad_state & DPAD_UP) != 0 || keyboard_bits.up) {
             /* select the previous rom */
             draw_text(filenames[selected], 0, selected, 0xFF, 0x00);
             if (selected == 0) {
@@ -252,7 +260,7 @@ void rom_file_selector() {
             printf("Rom %s\r\n", filenames[selected]);
             sleep_ms(150);
         }
-        if ((nespad_state & DPAD_RIGHT) != 0) {
+        if ((nespad_state & DPAD_RIGHT) != 0 || keyboard_bits.right) {
             /* select the next page */
             num_page++;
             numfiles = rom_file_selector_display_page(filenames, num_page);
@@ -266,7 +274,7 @@ void rom_file_selector() {
             draw_text(filenames[selected], 0, selected, 0xFF, 0xF8);
             sleep_ms(150);
         }
-        if ((nespad_state & DPAD_LEFT) != 0 && num_page > 0) {
+        if ((nespad_state & DPAD_LEFT) != 0 && num_page > 0 || keyboard_bits.left) {
             /* select the previous page */
             num_page--;
             numfiles = rom_file_selector_display_page(filenames, num_page);
